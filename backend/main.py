@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import asyncio
 import math
 import random
@@ -10,6 +11,9 @@ from typing import Any, Dict, List, Literal, Optional
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
+
+import httpx
+
 
 title = "NPD API"
 description = "API for the NPD (New Product Development) system"
@@ -92,6 +96,23 @@ JOBS: Dict[str, Job] = {}  # In-memory storage for jobs
 @app.get("/ping")
 async def ping():
     return {"ok": True, "time": time.time()}
+
+
+ping_url = os.getenv("PING_URL", "http://127.0.0.1:8000/ping")
+
+@app.on_event("startup")
+async def start_keep_alive():
+    async def keep_alive_loop():
+        while True:
+            try:
+                async with httpx.AsyncClient() as client:
+                    await client.get(ping_url)
+                await asyncio.sleep(300)  # 5 minutes
+            except Exception:
+                await asyncio.sleep(300)
+
+    asyncio.create_task(keep_alive_loop())
+
 
 # ----------------------------------
 # DATASET ENDPOINTS

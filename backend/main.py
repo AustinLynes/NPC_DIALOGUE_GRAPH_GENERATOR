@@ -27,7 +27,7 @@ app.add_middleware(
 
 class DatasetSample(BaseModel):
     persona: str = Field(..., min_length=1)
-    emotion: str = Field(..., minLength=1)
+    emotion: str = Field(..., min_length=1)
     text: str = Field(..., min_length=1)
     tags: Optional[List[str]] = None
 
